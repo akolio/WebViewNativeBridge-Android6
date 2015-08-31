@@ -4,6 +4,8 @@ import com.test.webviewtest_android.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,12 +41,54 @@ public class FullscreenActivity extends Activity {
 
         Environment.getDataDirectory();
 
-        WebView webView = (WebView) findViewById(R.id.webView);
+        final WebView webView = (WebView) findViewById(R.id.webView);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
+        WebAppInterface webAppInterface = new WebAppInterface(this);
+        webAppInterface.getCommands().put("yesno", new WebAppCmd() {
+            @Override
+            public void execute(final Object callbackId, Object arguments) {
+                System.out.println("executing yesno with cbid: "+callbackId+" and arguments: "+arguments);
 
-        webView.addJavascriptInterface(new WebAppInterface(this), "Android");
+                AlertDialog.Builder builder = new AlertDialog.Builder(FullscreenActivity.this);
+                builder
+                        .setTitle("From js:")
+                        .setMessage(arguments.toString())
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                System.out.println("YES PRESSED");
+                                webView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        String js = "NativeBridge.handleCallback(\"{\\\"callbackId\\\": \\\"" + callbackId+"\\\", \\\"content\\\": \\\"yes\\\"}\");";
+                                        System.out.println("js:"+js);
+                                        webView.evaluateJavascript(js, null);
+                                    }
+                                });
+
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                System.out.println("NO PRESSED");
+                                webView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        String js = "NativeBridge.handleCallback(\"{\\\"callbackId\\\": \\\"" + callbackId + "\\\", \\\"content\\\": \\\"no\\\"}\");";
+                                        System.out.println("js:" + js);
+                                        webView.evaluateJavascript(js, null);
+                                    }
+                                });
+                            }
+                        })
+                        .show();
+
+            }
+        });
+        webView.addJavascriptInterface(webAppInterface, "Android");
 
         webView.loadUrl("file:///android_asset/web/index.html");
     }

@@ -6,11 +6,16 @@ import android.webkit.JavascriptInterface;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by antti.kolio on 31/08/15.
  */
 public class WebAppInterface {
     Context mContext;
+
+    private Map<String, WebAppCmd> commands = new HashMap<String, WebAppCmd>();
 
     WebAppInterface(Context c) {
         mContext = c;
@@ -26,14 +31,24 @@ public class WebAppInterface {
         try {
             JSONObject json = new JSONObject(message);
             //{"callbackId":1,"command":"yesno","arguments":"Hello from JS!"}
-            Object command = json.get("command");
-            System.out.println("command: "+command);
+            String command = json.getString("command");
 
             Object callbackId = json.get("callbackId");
-            System.out.println("cback id: "+callbackId);
+            Object arguments = json.get("arguments");
+
+            System.out.println("search for: "+command);
+            WebAppCmd webAppCmd = getCommands().get(command);
+            if(webAppCmd != null) {
+                System.out.println("found cmd");
+                webAppCmd.execute(callbackId, arguments);
+            }
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public Map<String, WebAppCmd> getCommands() {
+        return commands;
     }
 }
