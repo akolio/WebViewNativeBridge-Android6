@@ -5,12 +5,15 @@ import com.test.webviewtest_android.util.SystemUiHider;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -88,6 +91,16 @@ public class FullscreenActivity extends Activity {
 
             }
         });
+
+        webAppInterface.getCommands().put("images", new WebAppCmd() {
+            @Override
+            public void execute(Object callbackId, Object arguments) {
+                startActivity(createImageChooserIntent("get images", FullscreenActivity.this));
+            }
+        });
+
+
+
         webView.addJavascriptInterface(webAppInterface, "Android");
 
         webView.loadUrl("file:///android_asset/web/index.html");
@@ -97,5 +110,14 @@ public class FullscreenActivity extends Activity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
+    }
+
+    public Intent createImageChooserIntent(String title, Context ctx){
+        Intent imagePicker = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePicker.setType("image/*");
+
+        Intent chooser = Intent.createChooser(imagePicker,title);
+
+        return chooser;
     }
 }
