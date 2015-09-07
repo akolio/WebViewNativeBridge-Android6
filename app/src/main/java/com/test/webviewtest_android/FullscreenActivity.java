@@ -19,6 +19,9 @@ import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -65,7 +68,19 @@ public class FullscreenActivity extends Activity {
                                 webView.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        String js = "NativeBridge.handleCallback(\"{\\\"callbackId\\\": \\\"" + callbackId+"\\\", \\\"content\\\": \\\"yes\\\"}\");";
+                                        JSONObject json = new JSONObject();
+                                        try {
+                                            JSONObject contentJson = new JSONObject();
+                                            contentJson.put("answer", "Yes");
+
+                                            json.put("callbackId", callbackId);
+                                            json.put("content", contentJson);
+
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        String js = "NativeBridge.handleCallback('"+json.toString()+"');";
                                         System.out.println("js:"+js);
                                         webView.evaluateJavascript(js, null);
                                     }
@@ -80,7 +95,19 @@ public class FullscreenActivity extends Activity {
                                 webView.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        String js = "NativeBridge.handleCallback(\"{\\\"callbackId\\\": \\\"" + callbackId + "\\\", \\\"content\\\": \\\"no\\\"}\");";
+                                        JSONObject json = new JSONObject();
+                                        try {
+                                            JSONObject contentJson = new JSONObject();
+                                            contentJson.put("answer", "No");
+
+                                            json.put("callbackId", callbackId);
+                                            json.put("content", contentJson);
+
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        
+                                        String js = "NativeBridge.handleCallback('"+json.toString()+"');";
                                         System.out.println("js:" + js);
                                         webView.evaluateJavascript(js, null);
                                     }
